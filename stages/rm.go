@@ -19,5 +19,5 @@ func (d *DockerRm) Run() error {
 		d.name,
 	}
 	cmd := exec.Command("docker", args...)
-	return cmd.Run()
+	return runCmd(cmd)
 }

@@ -19,11 +19,11 @@ func (d *DockerBuild) Run() error {
 		"build",
 	}
 	if d.target != "" {
-		args = append(args, "--target "+d.target)
+		args = append(args, "--target", d.target)
 	}
-	args = append(args, "--tag "+d.imageName, d.context)
+	args = append(args, "--tag", d.imageName, d.context)
 	cmd := exec.Command("docker", args...)
-	return cmd.Run()
+	return runCmd(cmd)
 }
 
 func (d *DockerBuild) Target(t string) *DockerBuild {

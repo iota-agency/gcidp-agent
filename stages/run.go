@@ -33,14 +33,14 @@ func (d *DockerRun) Run() error {
 		args = append(args, "--label "+l)
 	}
 	for _, e := range d.envVariables {
-		args = append(args, fmt.Sprintf("-e %s=%s", e.Key, e.Value))
+		args = append(args, "-e", fmt.Sprintf("%s=%s", e.Key, e.Value))
 	}
 	if d.network != "" {
 		args = append(args, "--network", d.network)
 	}
 	args = append(args, d.imageName)
 	cmd := exec.Command("docker", args...)
-	return cmd.Run()
+	return runCmd(cmd)
 }
 
 func (d *DockerRun) Label(label string) *DockerRun {
