@@ -30,7 +30,7 @@ func (d *DockerRun) Run() error {
 		d.containerName,
 	}
 	for _, l := range d.labels {
-		args = append(args, "--label "+l)
+		args = append(args, "--label", l)
 	}
 	for _, e := range d.envVariables {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", e.Key, e.Value))
