@@ -25,8 +25,9 @@ func (p *PipeLine) Run() {
 	}
 }
 
-func (p *PipeLine) Stage(s Stage) {
+func (p *PipeLine) Stage(s Stage) *PipeLine {
 	p.Stages = append(p.Stages, s)
+	return p
 }
 
 func (p *PipeLine) Branch() string {
