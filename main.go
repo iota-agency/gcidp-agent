@@ -33,7 +33,8 @@ func main() {
 			Label(traefik.TslResolver(routerName)).
 			Label(traefik.LoadBalancerPort(routerName, 80)).
 			Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio").
-			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030"),
+			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
+			Network("app"),
 	)
 	pl.Run()
 }
