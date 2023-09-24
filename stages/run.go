@@ -43,14 +43,17 @@ func (d *DockerRun) Run() error {
 	return cmd.Run()
 }
 
-func (d *DockerRun) Label(label string) {
+func (d *DockerRun) Label(label string) *DockerRun {
 	d.labels = append(d.labels, label)
+	return d
 }
 
-func (d *DockerRun) Env(key, value string) {
+func (d *DockerRun) Env(key, value string) *DockerRun {
 	d.envVariables = append(d.envVariables, EnvironmentVariable{Key: key, Value: value})
+	return d
 }
 
-func (d *DockerRun) Network(network string) {
+func (d *DockerRun) Network(network string) *DockerRun {
 	d.network = network
+	return d
 }

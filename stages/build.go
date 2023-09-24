@@ -26,14 +26,7 @@ func (d *DockerBuild) Run() error {
 	return cmd.Run()
 }
 
-func (d *DockerBuild) Target(t string) {
+func (d *DockerBuild) Target(t string) *DockerBuild {
 	d.target = t
-}
-
-func (d *DockerBuild) Name(name string) {
-	d.imageName = name
-}
-
-func (d *DockerBuild) Context(context string) {
-	d.context = context
+	return d
 }

@@ -18,6 +18,6 @@ func TslResolver(routerName string) string {
 	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver=letsencrypt", routerName)
 }
 
-func LoadBalancerPort(routerName string) string {
-	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=80", routerName)
+func LoadBalancerPort(routerName string, port int) string {
+	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", routerName, port)
 }

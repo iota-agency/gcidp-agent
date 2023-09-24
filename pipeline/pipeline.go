@@ -1,6 +1,9 @@
 package pipeline
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 type Stage interface {
 	Run() error
@@ -15,7 +18,11 @@ func New() *PipeLine {
 }
 
 func (p *PipeLine) Run() {
-
+	for _, s := range p.Stages {
+		if err := s.Run(); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (p *PipeLine) Stage(s Stage) {
@@ -24,4 +31,10 @@ func (p *PipeLine) Stage(s Stage) {
 
 func (p *PipeLine) Branch() string {
 	return os.Getenv("GITHUB_REF_NAME")
+}
+
+func (p *PipeLine) BranchNormalized() string {
+	b := strings.Replace(p.Branch(), "-", "", -1)
+	b = strings.Replace(b, ".", "", -1)
+	return strings.ToLower(b)
 }
