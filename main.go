@@ -5,6 +5,7 @@ import (
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/stages"
 	"github.com/apollo-studios/gcidp-agent/traefik"
+	"os"
 )
 
 func main() {
@@ -13,9 +14,16 @@ func main() {
 	branch := pl.BranchNormalized()
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
-	routerName := fmt.Sprintf("%s-front", projectName)
+	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
 
-	pl.Stage(stages.NewDockerRm(containerName))
+	if os.Getenv("GCIDP_CLEANUP") == "True" {
+		pl.Stage(stages.NewDockerRm().Container(containerName))
+		pl.Stage(stages.NewDockerRm().Image(imageName))
+		pl.Run()
+		return
+	}
+
+	pl.Stage(stages.NewDockerRm().Container(containerName))
 	pl.Stage(stages.NewDockerBuild(imageName, "./front").Target("prod"))
 	pl.Stage(
 		stages.NewDockerRun(containerName, imageName).
