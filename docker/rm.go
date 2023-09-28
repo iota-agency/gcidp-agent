@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"log"
 )
 
 type RmContainerCommand struct {
@@ -26,16 +27,24 @@ func RmImage(name string, silent bool) *RmImageCommand {
 
 func (d *RmContainerCommand) Run(cli *client.Client) error {
 	err := cli.ContainerRemove(context.Background(), d.name, types.ContainerRemoveOptions{Force: true})
-	if !d.silent && err != nil {
-		return err
+	if err == nil {
+		if d.silent {
+			log.Println(err)
+		} else {
+			return err
+		}
 	}
 	return nil
 }
 
 func (d *RmImageCommand) Run(cli *client.Client) error {
 	_, err := cli.ImageRemove(context.Background(), d.name, types.ImageRemoveOptions{Force: true})
-	if !d.silent && err != nil {
-		return err
+	if err == nil {
+		if d.silent {
+			log.Println(err)
+		} else {
+			return err
+		}
 	}
 	return nil
 }

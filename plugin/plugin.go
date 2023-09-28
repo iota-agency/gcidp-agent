@@ -27,7 +27,7 @@ func Build(pl *pipeline.PipeLine, branch string) {
 	pl.Stage(
 		docker.Run(containerName, imageName).
 			Label(traefik.Enable, traefik.True).
-			Label(traefik.Host(routerName), fmt.Sprintf("%s.%s.apollos.studio", branch, projectName)).
+			Label(traefik.Rule(routerName), traefik.Host(fmt.Sprintf("%s.%s.apollos.studio", branch, projectName))).
 			Label(traefik.TLS(routerName), traefik.True).
 			Label(traefik.TLSResolver(routerName), "letsencrypt").
 			Label(traefik.LoadBalancerPort(routerName), "80").
