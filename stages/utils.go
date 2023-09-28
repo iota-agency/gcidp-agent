@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func runCmd(cmd *exec.Cmd) error {
+func RunCmd(cmd *exec.Cmd) error {
 	var outbuf, errbuf strings.Builder
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
