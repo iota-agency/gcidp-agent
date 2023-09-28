@@ -21,7 +21,7 @@ func Run(container, image string) *RunCommand {
 	return &RunCommand{
 		container: container,
 		image:     image,
-		labels:    map[string]string{},
+		labels:    map[string]string{"gcidp.enable": "true"},
 		env:       map[string]string{},
 	}
 }
