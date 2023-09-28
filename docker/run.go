@@ -6,7 +6,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
-	"strings"
 )
 
 type RunCommand struct {
@@ -59,12 +58,6 @@ func (d *RunCommand) Run(cli *client.Client) error {
 
 func (d *RunCommand) Label(key, value string) *RunCommand {
 	d.labels[key] = value
-	return d
-}
-
-func (d *RunCommand) LabelString(label string) *RunCommand {
-	v := strings.Split(label, "=")
-	d.labels[v[0]] = v[1]
 	return d
 }
 
