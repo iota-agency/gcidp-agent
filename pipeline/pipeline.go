@@ -1,25 +1,35 @@
 package pipeline
 
 import (
+	"fmt"
+	"github.com/docker/docker/client"
 	"os"
 	"strings"
 )
 
 type Stage interface {
-	Run() error
+	Run(cli *client.Client) error
 }
 
 type PipeLine struct {
+	Client *client.Client
 	Stages []Stage
 }
 
 func New() *PipeLine {
-	return &PipeLine{}
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		panic(err)
+	}
+	return &PipeLine{
+		Client: cli,
+	}
 }
 
 func (p *PipeLine) Run() {
 	for _, s := range p.Stages {
-		if err := s.Run(); err != nil {
+		if err := s.Run(p.Client); err != nil {
+			fmt.Println(err)
 			panic(err)
 		}
 	}

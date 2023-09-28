@@ -1,7 +1,9 @@
 package stages
 
 import (
-	"os/exec"
+	"context"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 type DockerRm struct {
@@ -24,12 +26,10 @@ func (d *DockerRm) Image(name string) *DockerRm {
 	return d
 }
 
-func (d *DockerRm) Run() error {
-	var args []string
-	if d.image {
-		args = append(args, "image")
+func (d *DockerRm) Run(cli *client.Client) error {
+	_, err := cli.ImageRemove(context.Background(), d.name, types.ImageRemoveOptions{Force: true})
+	if err != nil {
+		return err
 	}
-	args = append(args, "rm", "-f", d.name)
-	cmd := exec.Command("docker", args...)
-	return runCmd(cmd)
+	return nil
 }

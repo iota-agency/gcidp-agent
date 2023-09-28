@@ -1,55 +1,72 @@
 package stages
 
 import (
-	"fmt"
-	"os/exec"
+	"context"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
+	"strings"
 )
 
-type EnvironmentVariable struct {
-	Key   string
-	Value string
-}
-
 type DockerRun struct {
-	envVariables  []EnvironmentVariable
-	containerName string
-	imageName     string
-	network       string
-	labels        []string
+	env       map[string]string
+	container string
+	image     string
+	network   string
+	labels    map[string]string
 }
 
-func NewDockerRun(containerName, imageName string) *DockerRun {
-	return &DockerRun{containerName: containerName, imageName: imageName}
+func NewDockerRun(container, image string) *DockerRun {
+	return &DockerRun{
+		container: container,
+		image:     image,
+		labels:    map[string]string{},
+		env:       map[string]string{},
+	}
 }
 
-func (d *DockerRun) Run() error {
-	args := []string{
-		"run",
-		"-d",
-		"--name",
-		d.containerName,
+func (d *DockerRun) envList() []string {
+	var env []string
+	for k, v := range d.env {
+		env = append(env, k+"="+v)
 	}
-	for _, l := range d.labels {
-		args = append(args, "--label", l)
-	}
-	for _, e := range d.envVariables {
-		args = append(args, "-e", fmt.Sprintf("%s=%s", e.Key, e.Value))
-	}
-	if d.network != "" {
-		args = append(args, "--network", d.network)
-	}
-	args = append(args, d.imageName)
-	cmd := exec.Command("docker", args...)
-	return runCmd(cmd)
+	return env
 }
 
-func (d *DockerRun) Label(label string) *DockerRun {
-	d.labels = append(d.labels, label)
+func (d *DockerRun) Run(cli *client.Client) error {
+	networkConfig := &network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{
+			d.network: {
+				NetworkID: d.network,
+			},
+		},
+	}
+	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
+		Image:  d.image,
+		Tty:    false,
+		Labels: d.labels,
+		Env:    d.envList(),
+	}, nil, networkConfig, nil, d.container)
+	if err != nil {
+		return err
+	}
+	return cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+}
+
+func (d *DockerRun) Label(key, value string) *DockerRun {
+	d.labels[key] = value
+	return d
+}
+
+func (d *DockerRun) LabelString(label string) *DockerRun {
+	v := strings.Split(label, "=")
+	d.labels[v[0]] = v[1]
 	return d
 }
 
 func (d *DockerRun) Env(key, value string) *DockerRun {
-	d.envVariables = append(d.envVariables, EnvironmentVariable{Key: key, Value: value})
+	d.env[key] = value
 	return d
 }
 

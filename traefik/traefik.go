@@ -2,22 +2,27 @@ package traefik
 
 import "fmt"
 
-func Enable() string {
-	return "traefik.enable=true"
+const (
+	True   = "true"
+	Enable = "traefik.enable"
+)
+
+func Rule(routerName string) string {
+	return fmt.Sprintf("traefik.http.routers.%s.rule", routerName)
 }
 
-func Host(routerName, host string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.rule=Host(`%s`)", routerName, host)
+func Host(host string) string {
+	return fmt.Sprintf("Host(`%s`)", host)
 }
 
-func EnableTls(routerName string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.tls=true", routerName)
+func TLS(routerName string) string {
+	return fmt.Sprintf("traefik.http.routers.%s.tls", routerName)
 }
 
-func TslResolver(routerName string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver=letsencrypt", routerName)
+func TLSResolver(routerName string) string {
+	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", routerName)
 }
 
-func LoadBalancerPort(routerName string, port int) string {
-	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port=%d", routerName, port)
+func LoadBalancerPort(routerName string) string {
+	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", routerName)
 }

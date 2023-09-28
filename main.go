@@ -1,42 +1,34 @@
 package main
 
 import (
-	"fmt"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
-	"github.com/apollo-studios/gcidp-agent/stages"
-	"github.com/apollo-studios/gcidp-agent/traefik"
 	"os"
+	"os/exec"
+	"plugin"
 )
 
 func main() {
-	projectName := "website"
+	if err := exec.Command("go", "build", "-buildmode=plugin", "-o", "plugin.so", "./plugin").Run(); err != nil {
+		panic(err)
+	}
 	pl := pipeline.New()
 	branch := pl.BranchNormalized()
-	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
-	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
-	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
-
-	if os.Getenv("GCIDP_CLEANUP") == "True" {
-		pl.Stage(stages.NewDockerRm().Container(containerName))
-		pl.Stage(stages.NewDockerRm().Image(imageName))
-		pl.Run()
-		return
+	p, err := plugin.Open("./plugin.so")
+	if err != nil {
+		panic(err)
 	}
-
-	pl.Stage(stages.NewDockerRm().Container(containerName))
-	pl.Stage(stages.NewDockerBuild(imageName, "./front").Target("prod"))
-	pl.Stage(
-		stages.NewDockerRun(containerName, imageName).
-			Label(traefik.Enable()).
-			Label(traefik.Host(routerName, fmt.Sprintf("%s.%s.apollos.studio", branch, projectName))).
-			Label(traefik.EnableTls(routerName)).
-			Label(traefik.TslResolver(routerName)).
-			Label(traefik.LoadBalancerPort(routerName, 80)).
-			Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio").
-			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
-			Network("app"),
-	)
+	if os.Getenv("GCIDP_CLEANUP") == "True" {
+		cleanup, err := p.Lookup("Cleanup")
+		if err != nil {
+			panic(err)
+		}
+		cleanup.(func(pl *pipeline.PipeLine, branch string))(pl, branch)
+	} else {
+		build, err := p.Lookup("Build")
+		if err != nil {
+			panic(err)
+		}
+		build.(func(pl *pipeline.PipeLine, branch string))(pl, branch)
+	}
 	pl.Run()
 }
-
-// GOOS=linux GOARCH=amd64 go build -o build .
