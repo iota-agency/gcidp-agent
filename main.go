@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/apollo-studios/gcidp-agent/pipeline"
-	"github.com/apollo-studios/gcidp-agent/stages"
+	"github.com/apollo-studios/gcidp-agent/utils"
 	"log"
 	"os"
 	"os/exec"
@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	if err := stages.RunCmd(exec.Command("go", "build", "-buildmode=plugin", "-o", "plugin.so", "./plugin")); err != nil {
+	if err := utils.RunCmd(exec.Command("go", "build", "-buildmode=plugin", "-o", "plugin.so", "./plugin")); err != nil {
 		log.Fatal(err)
 	}
 	pl := pipeline.New()
