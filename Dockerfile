@@ -2,8 +2,7 @@ FROM golang:1.21.1
 
 ENV GO111MODULE=auto \
     CGO_ENABLED=1 \
-    GOOS=linux \
-    GOARCH=amd64
+    GOOS=linux
 
 WORKDIR /build
 

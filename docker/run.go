@@ -35,12 +35,15 @@ func (d *RunCommand) envList() []string {
 }
 
 func (d *RunCommand) Run(cli *client.Client) error {
-	networkConfig := &network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{
-			d.network: {
-				NetworkID: d.network,
+	var networkConfig *network.NetworkingConfig
+	if d.network != "" {
+		networkConfig = &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				d.network: {
+					NetworkID: d.network,
+				},
 			},
-		},
+		}
 	}
 	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
 		Image:  d.image,

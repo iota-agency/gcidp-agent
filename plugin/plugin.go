@@ -23,6 +23,7 @@ func Build(pl *pipeline.PipeLine, branch string) {
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
 
 	pl.Stage(docker.RmImage(imageName, true))
+	pl.Stage(docker.RmContainer(containerName, true))
 	pl.Stage(docker.Build(imageName, "./context/front").Target("prod"))
 	pl.Stage(
 		docker.Run(containerName, imageName).
@@ -35,4 +36,5 @@ func Build(pl *pipeline.PipeLine, branch string) {
 			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
 			Network("app"),
 	)
+	pl.Stage(docker.Prune())
 }
