@@ -6,28 +6,33 @@ import (
 	"github.com/docker/docker/client"
 )
 
-type RmCommand struct {
+type RmContainerCommand struct {
 	name   string
-	image  bool
 	silent bool
 }
 
-func Rm(silent bool) *RmCommand {
-	return &RmCommand{silent: silent}
+type RmImageCommand struct {
+	name   string
+	silent bool
 }
 
-func (d *RmCommand) Container(name string) *RmCommand {
-	d.name = name
-	return d
+func RmContainer(name string, silent bool) *RmContainerCommand {
+	return &RmContainerCommand{name: name, silent: silent}
 }
 
-func (d *RmCommand) Image(name string) *RmCommand {
-	d.name = name
-	d.image = true
-	return d
+func RmImage(name string, silent bool) *RmImageCommand {
+	return &RmImageCommand{name: name, silent: silent}
 }
 
-func (d *RmCommand) Run(cli *client.Client) error {
+func (d *RmContainerCommand) Run(cli *client.Client) error {
+	err := cli.ContainerRemove(context.Background(), d.name, types.ContainerRemoveOptions{Force: true})
+	if !d.silent && err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *RmImageCommand) Run(cli *client.Client) error {
 	_, err := cli.ImageRemove(context.Background(), d.name, types.ImageRemoveOptions{Force: true})
 	if !d.silent && err != nil {
 		return err

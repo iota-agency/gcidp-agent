@@ -12,8 +12,8 @@ const projectName = "website"
 func Cleanup(pl *pipeline.PipeLine, branch string) {
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
-	pl.Stage(docker.Rm(true).Container(containerName))
-	pl.Stage(docker.Rm(true).Image(imageName))
+	pl.Stage(docker.RmContainer(containerName, true))
+	pl.Stage(docker.RmImage(imageName, true))
 	pl.Run()
 }
 
@@ -22,7 +22,7 @@ func Build(pl *pipeline.PipeLine, branch string) {
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
 
-	pl.Stage(docker.Rm(true).Container(containerName))
+	pl.Stage(docker.RmImage(imageName, true))
 	pl.Stage(docker.Build(imageName, "./context/front").Target("prod"))
 	pl.Stage(
 		docker.Run(containerName, imageName).
