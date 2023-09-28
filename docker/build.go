@@ -1,4 +1,4 @@
-package stages
+package docker
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/docker/docker/pkg/archive"
 )
 
-type DockerBuild struct {
+type BuildCommand struct {
 	target  string
 	image   string
 	context string
 }
 
-func NewDockerBuild(image, context string) *DockerBuild {
-	return &DockerBuild{image: image, context: context}
+func Build(image, context string) *BuildCommand {
+	return &BuildCommand{image: image, context: context}
 }
 
-func (d *DockerBuild) Run(cli *client.Client) error {
+func (d *BuildCommand) Run(cli *client.Client) error {
 	tar, err := archive.TarWithOptions(d.context, &archive.TarOptions{})
 	if err != nil {
 		return err
@@ -34,14 +34,14 @@ func (d *DockerBuild) Run(cli *client.Client) error {
 	if err != nil {
 		return err
 	}
+	defer build.Body.Close()
 	if err := utils.Print(build.Body); err != nil {
 		return err
 	}
-	defer build.Body.Close()
 	return nil
 }
 
-func (d *DockerBuild) Target(t string) *DockerBuild {
+func (d *BuildCommand) Target(t string) *BuildCommand {
 	d.target = t
 	return d
 }

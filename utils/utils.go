@@ -48,7 +48,9 @@ func Print(rd io.Reader) error {
 	}
 
 	errLine := &ErrorLine{}
-	json.Unmarshal([]byte(lastLine), errLine)
+	if err := json.Unmarshal([]byte(lastLine), errLine); err != nil {
+		return err
+	}
 	if errLine.Error != "" {
 		return errors.New(errLine.Error)
 	}

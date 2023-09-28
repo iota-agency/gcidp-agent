@@ -1,4 +1,4 @@
-package stages
+package docker
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type DockerRun struct {
+type RunCommand struct {
 	env       map[string]string
 	container string
 	image     string
@@ -17,8 +17,8 @@ type DockerRun struct {
 	labels    map[string]string
 }
 
-func NewDockerRun(container, image string) *DockerRun {
-	return &DockerRun{
+func Run(container, image string) *RunCommand {
+	return &RunCommand{
 		container: container,
 		image:     image,
 		labels:    map[string]string{},
@@ -26,7 +26,7 @@ func NewDockerRun(container, image string) *DockerRun {
 	}
 }
 
-func (d *DockerRun) envList() []string {
+func (d *RunCommand) envList() []string {
 	var env []string
 	for k, v := range d.env {
 		env = append(env, k+"="+v)
@@ -34,7 +34,7 @@ func (d *DockerRun) envList() []string {
 	return env
 }
 
-func (d *DockerRun) Run(cli *client.Client) error {
+func (d *RunCommand) Run(cli *client.Client) error {
 	networkConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			d.network: {
@@ -54,23 +54,23 @@ func (d *DockerRun) Run(cli *client.Client) error {
 	return cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
 }
 
-func (d *DockerRun) Label(key, value string) *DockerRun {
+func (d *RunCommand) Label(key, value string) *RunCommand {
 	d.labels[key] = value
 	return d
 }
 
-func (d *DockerRun) LabelString(label string) *DockerRun {
+func (d *RunCommand) LabelString(label string) *RunCommand {
 	v := strings.Split(label, "=")
 	d.labels[v[0]] = v[1]
 	return d
 }
 
-func (d *DockerRun) Env(key, value string) *DockerRun {
+func (d *RunCommand) Env(key, value string) *RunCommand {
 	d.env[key] = value
 	return d
 }
 
-func (d *DockerRun) Network(network string) *DockerRun {
+func (d *RunCommand) Network(network string) *RunCommand {
 	d.network = network
 	return d
 }

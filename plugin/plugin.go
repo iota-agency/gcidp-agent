@@ -2,15 +2,37 @@ package main
 
 import (
 	"fmt"
+	"github.com/apollo-studios/gcidp-agent/docker"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
+	"github.com/apollo-studios/gcidp-agent/traefik"
 )
 
 const projectName = "website"
 
 func Cleanup(pl *pipeline.PipeLine, branch string) {
-	fmt.Println("No Cleanup function is registered")
+	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
+	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
+	pl.Stage(docker.Rm(true).Container(containerName))
+	pl.Stage(docker.Rm(true).Image(imageName))
+	pl.Run()
 }
 
 func Build(pl *pipeline.PipeLine, branch string) {
-	fmt.Println("No Build function is registered")
+	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
+	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
+	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
+
+	pl.Stage(docker.Rm(true).Container(containerName))
+	pl.Stage(docker.Build(imageName, "./context/front").Target("prod"))
+	pl.Stage(
+		docker.Run(containerName, imageName).
+			Label(traefik.Enable, traefik.True).
+			Label(traefik.Host(routerName), fmt.Sprintf("%s.%s.apollos.studio", branch, projectName)).
+			Label(traefik.TLS(routerName), traefik.True).
+			Label(traefik.TLSResolver(routerName), "letsencrypt").
+			Label(traefik.LoadBalancerPort(routerName), "80").
+			Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio").
+			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
+			Network("app"),
+	)
 }
