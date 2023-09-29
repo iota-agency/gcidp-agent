@@ -4,69 +4,42 @@ import (
 	"context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
+	dockerNetwork "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
 type RunCommand struct {
-	env       map[string]string
-	container string
-	image     string
-	network   string
-	labels    map[string]string
+	cName         string
+	image         string
+	config        *container.Config
+	networkConfig *dockerNetwork.NetworkingConfig
 }
 
-func Run(container, image string) *RunCommand {
+func Run(cName, image string) *RunCommand {
 	return &RunCommand{
-		container: container,
-		image:     image,
-		labels:    map[string]string{"gcidp.enable": "true"},
-		env:       map[string]string{},
+		cName: cName,
+		image: image,
+		config: &container.Config{
+			Tty: false,
+			Labels: map[string]string{
+				"gcidp.enable": "true",
+			},
+			Env: []string{},
+		},
 	}
-}
-
-func (d *RunCommand) envList() []string {
-	var env []string
-	for k, v := range d.env {
-		env = append(env, k+"="+v)
-	}
-	return env
 }
 
 func (d *RunCommand) Run(cli *client.Client) error {
-	var networkConfig *network.NetworkingConfig
-	if d.network != "" {
-		networkConfig = &network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{
-				d.network: {
-					NetworkID: d.network,
-				},
-			},
-		}
-	}
-	resp, err := cli.ContainerCreate(context.Background(), &container.Config{
-		Image:  d.image,
-		Tty:    false,
-		Labels: d.labels,
-		Env:    d.envList(),
-	}, nil, networkConfig, nil, d.container)
+	resp, err := cli.ContainerCreate(context.Background(), d.config, nil, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
 	}
 	return cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
 }
 
-func (d *RunCommand) Label(key, value string) *RunCommand {
-	d.labels[key] = value
-	return d
-}
-
-func (d *RunCommand) Env(key, value string) *RunCommand {
-	d.env[key] = value
-	return d
-}
-
-func (d *RunCommand) Network(network string) *RunCommand {
-	d.network = network
+func (d *RunCommand) Config(confs ...Conf) *RunCommand {
+	for _, c := range confs {
+		c.apply(d)
+	}
 	return d
 }

@@ -1,9 +1,7 @@
 package pipeline
 
 import (
-	"fmt"
 	"github.com/docker/docker/client"
-	"os"
 )
 
 type Stage interface {
@@ -11,34 +9,19 @@ type Stage interface {
 }
 
 type PipeLine struct {
-	Client *client.Client
-	Stages []Stage
+	stages []Stage
 }
 
-func New() *PipeLine {
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		panic(err)
-	}
-	return &PipeLine{
-		Client: cli,
-	}
-}
-
-func (p *PipeLine) Run() {
-	for _, s := range p.Stages {
-		if err := s.Run(p.Client); err != nil {
-			fmt.Println(err)
-			panic(err)
+func (p *PipeLine) Run(cli *client.Client) error {
+	for _, s := range p.stages {
+		if err := s.Run(cli); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
-func (p *PipeLine) Stage(s Stage) *PipeLine {
-	p.Stages = append(p.Stages, s)
+func (p *PipeLine) Stages(s ...Stage) *PipeLine {
+	p.stages = append(p.stages, s...)
 	return p
-}
-
-func (p *PipeLine) Branch() string {
-	return os.Getenv("GITHUB_REF_NAME")
 }

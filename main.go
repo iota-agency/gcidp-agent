@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/apollo-studios/gcidp-agent/docker"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"log"
@@ -14,8 +13,8 @@ func main() {
 	if err := utils.RunCmd(exec.Command("go", "build", "-buildmode=plugin", "-o", "plugin.so", "./plugin")); err != nil {
 		log.Fatal(err)
 	}
-	pl := pipeline.New()
-	branch := pl.Branch()
+	runner := pipeline.NewRunner()
+	branch := runner.Branch()
 	p, err := plugin.Open("./plugin.so")
 	if err != nil {
 		log.Fatal(err)
@@ -25,14 +24,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		cleanup.(func(pl *pipeline.PipeLine, branch string))(pl, branch)
+		cleanup.(func(runner *pipeline.Runner, branch string))(runner, branch)
 	} else {
 		build, err := p.Lookup("Build")
 		if err != nil {
 			log.Fatal(err)
 		}
-		build.(func(pl *pipeline.PipeLine, branch string))(pl, branch)
+		build.(func(runner *pipeline.Runner, branch string))(runner, branch)
 	}
-	pl.Stage(docker.Prune())
-	pl.Run()
+	if err := runner.Run(); err != nil {
+		log.Fatal(err)
+	}
 }

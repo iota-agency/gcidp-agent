@@ -9,31 +9,53 @@ import (
 
 const projectName = "website"
 
-func Cleanup(pl *pipeline.PipeLine, branch string) {
+func Cleanup(runner *pipeline.Runner, branch string) {
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
-	pl.Stage(docker.RmContainer(containerName, true))
-	pl.Stage(docker.RmImage(imageName, true))
+	runner.Pipeline().Stages(
+		docker.RmContainer(containerName, true),
+		docker.RmImage(imageName, true),
+	)
 }
 
-func Build(pl *pipeline.PipeLine, branch string) {
+func Build(runner *pipeline.Runner, branch string) {
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
+	runner.Pipeline().Stages(
+		docker.RmImage(imageName, true),
+		docker.RmContainer(containerName, true),
+		docker.Build(imageName, "./context/front").Target("prod"),
+		docker.Run(containerName, imageName).Config(
+			docker.Label("gcidp.branch", branch),
+			docker.Label(traefik.Enable, traefik.True),
+			docker.Label(traefik.TLS(routerName), traefik.True),
+			docker.Label(traefik.TLSResolver(routerName), "letsencrypt"),
+			docker.Label(traefik.Rule(routerName), traefik.Host(fmt.Sprintf("%s.%s.apollos.studio", branch, projectName))),
+			docker.Label(traefik.LoadBalancerPort(routerName), "80"),
+			docker.Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio"),
+			docker.Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030"),
+			docker.Network("app"),
+		),
+	)
 
-	pl.Stage(docker.RmImage(imageName, true))
-	pl.Stage(docker.RmContainer(containerName, true))
-	pl.Stage(docker.Build(imageName, "./context/front").Target("prod"))
-	pl.Stage(
-		docker.Run(containerName, imageName).
-			Label("gcidp.branch", branch).
-			Label(traefik.Enable, traefik.True).
-			Label(traefik.TLS(routerName), traefik.True).
-			Label(traefik.TLSResolver(routerName), "letsencrypt").
-			Label(traefik.Rule(routerName), traefik.Host(fmt.Sprintf("%s.%s.apollos.studio", branch, projectName))).
-			Label(traefik.LoadBalancerPort(routerName), "80").
-			Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio").
-			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
-			Network("app"),
+	containerName = fmt.Sprintf("%s-houston-%s", projectName, branch)
+	imageName = fmt.Sprintf("%s-houston:%s", projectName, branch)
+	routerName = fmt.Sprintf("%s-%s-houston", projectName, branch)
+	runner.Pipeline().Stages(
+		docker.RmImage(imageName, true),
+		docker.RmContainer(containerName, true),
+		docker.Build(imageName, "./context/houston").Target("prod"),
+		docker.Run(containerName, imageName).Config(
+			docker.Label("gcidp.branch", branch),
+			docker.Label(traefik.Enable, traefik.True),
+			docker.Label(traefik.TLS(routerName), traefik.True),
+			docker.Label(traefik.TLSResolver(routerName), "letsencrypt"),
+			docker.Label(traefik.Rule(routerName), traefik.Host(fmt.Sprintf("houston.%s.%s.apollos.studio", branch, projectName))),
+			docker.Label(traefik.LoadBalancerPort(routerName), "80"),
+			docker.Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio"),
+			docker.Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030"),
+			docker.Network("app"),
+		),
 	)
 }
