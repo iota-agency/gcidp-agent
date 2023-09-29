@@ -15,7 +15,7 @@ func main() {
 		log.Fatal(err)
 	}
 	pl := pipeline.New()
-	branch := pl.BranchNormalized()
+	branch := pl.Branch()
 	p, err := plugin.Open("./plugin.so")
 	if err != nil {
 		log.Fatal(err)

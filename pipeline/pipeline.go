@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/docker/docker/client"
 	"os"
-	"strings"
 )
 
 type Stage interface {
@@ -42,10 +41,4 @@ func (p *PipeLine) Stage(s Stage) *PipeLine {
 
 func (p *PipeLine) Branch() string {
 	return os.Getenv("GITHUB_REF_NAME")
-}
-
-func (p *PipeLine) BranchNormalized() string {
-	b := strings.Replace(p.Branch(), "-", "", -1)
-	b = strings.Replace(b, ".", "", -1)
-	return strings.ToLower(b)
 }
