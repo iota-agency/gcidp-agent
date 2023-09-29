@@ -14,7 +14,6 @@ func Cleanup(pl *pipeline.PipeLine, branch string) {
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	pl.Stage(docker.RmContainer(containerName, true))
 	pl.Stage(docker.RmImage(imageName, true))
-	pl.Run()
 }
 
 func Build(pl *pipeline.PipeLine, branch string) {
@@ -37,5 +36,4 @@ func Build(pl *pipeline.PipeLine, branch string) {
 			Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030").
 			Network("app"),
 	)
-	pl.Stage(docker.Prune())
 }

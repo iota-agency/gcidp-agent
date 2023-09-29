@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/apollo-studios/gcidp-agent/docker"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"log"
@@ -32,5 +33,6 @@ func main() {
 		}
 		build.(func(pl *pipeline.PipeLine, branch string))(pl, branch)
 	}
+	pl.Stage(docker.Prune())
 	pl.Run()
 }
