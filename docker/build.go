@@ -6,20 +6,49 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type BuildCommand struct {
-	target  string
-	image   string
-	context string
+	target       string
+	image        string
+	context      string
+	dockerIgnore string
+	exclude      []string
 }
 
 func Build(image, context string) *BuildCommand {
 	return &BuildCommand{image: image, context: context}
 }
 
+func ReadIgnore(f string) []string {
+	file, err := os.ReadFile(f)
+	if err != nil {
+		return []string{}
+	}
+	var result []string
+	entries := strings.Split(string(file), "\n")
+	for _, e := range entries {
+		trimmed := strings.Trim(e, " ")
+		if len(trimmed) > 0 {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
 func (d *BuildCommand) Run(cli *client.Client) error {
-	tar, err := archive.TarWithOptions(d.context, &archive.TarOptions{})
+	exclude := d.exclude
+	ignoreFile := filepath.Join(d.context, ".dockerignore")
+	if utils.FileExists(ignoreFile) {
+		exclude = append(exclude, ReadIgnore(ignoreFile)...)
+	}
+
+	tar, err := archive.TarWithOptions(d.context, &archive.TarOptions{
+		ExcludePatterns: exclude,
+	})
 	if err != nil {
 		return err
 	}
@@ -39,6 +68,16 @@ func (d *BuildCommand) Run(cli *client.Client) error {
 		return err
 	}
 	return nil
+}
+
+func (d *BuildCommand) Exclude(files []string) *BuildCommand {
+	d.exclude = files
+	return d
+}
+
+func (d *BuildCommand) DockerIgnore(f string) *BuildCommand {
+	d.dockerIgnore = f
+	return d
 }
 
 func (d *BuildCommand) Target(t string) *BuildCommand {
