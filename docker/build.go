@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -61,7 +60,6 @@ func (d *BuildCommand) Run(cli *client.Client) error {
 		Remove:      true,
 		ForceRemove: true,
 	}
-	fmt.Println(opts.Target, opts.Tags, d.context)
 	build, err := cli.ImageBuild(context.Background(), tar, opts)
 	if err != nil {
 		return err

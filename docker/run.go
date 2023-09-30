@@ -10,7 +10,6 @@ import (
 
 type RunCommand struct {
 	cName         string
-	image         string
 	config        *container.Config
 	networkConfig *dockerNetwork.NetworkingConfig
 }
@@ -18,9 +17,9 @@ type RunCommand struct {
 func Run(cName, image string) *RunCommand {
 	return &RunCommand{
 		cName: cName,
-		image: image,
 		config: &container.Config{
-			Tty: false,
+			Image: image,
+			Tty:   false,
 			Labels: map[string]string{
 				"gcidp.enable": "true",
 			},

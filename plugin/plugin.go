@@ -24,6 +24,7 @@ func Build(runner *pipeline.Runner, branch string) {
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
 	runner.Pipeline(
 		docker.Build(imageName, "./context/front").Target("prod"),
+		docker.RmContainer(containerName, true),
 		docker.Run(containerName, imageName).Config(
 			docker.Label("gcidp.branch", branch),
 			docker.Label(traefik.Enable, traefik.True),
@@ -42,6 +43,7 @@ func Build(runner *pipeline.Runner, branch string) {
 	routerName = fmt.Sprintf("%s-%s-houston", projectName, branch)
 	runner.Pipeline(
 		docker.Build(imageName, "./context/admin").Target("prod"),
+		docker.RmContainer(containerName, true),
 		docker.Run(containerName, imageName).Config(
 			docker.Label("gcidp.branch", branch),
 			docker.Label(traefik.Enable, traefik.True),
