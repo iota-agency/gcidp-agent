@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types"
@@ -62,7 +61,6 @@ func (d *BuildCommand) Run(ctx *pipeline.StageContext) error {
 		Remove:      true,
 		ForceRemove: true,
 	}
-	fmt.Println(opts.Tags, dockerCtx)
 	build, err := ctx.Client.ImageBuild(context.Background(), tar, opts)
 	if err != nil {
 		return err

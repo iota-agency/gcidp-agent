@@ -1,6 +1,9 @@
 package traefik
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	True   = "true"
@@ -12,7 +15,7 @@ func Rule(routerName string) string {
 }
 
 func Host(host string) string {
-	return fmt.Sprintf("Host(`%s`)", host)
+	return fmt.Sprintf("Host(`%s`)", strings.ToLower(host))
 }
 
 func TLS(routerName string) string {
