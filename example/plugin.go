@@ -7,6 +7,8 @@ import (
 	"github.com/apollo-studios/gcidp-agent/traefik"
 )
 
+var BuildServerVersion = "0.1.6"
+
 const projectName = "website"
 
 func Cleanup(runner *pipeline.Runner, branch string) {

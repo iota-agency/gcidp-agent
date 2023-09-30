@@ -21,3 +21,4 @@
 go.work
 .idea
 context
+example/plugin.so

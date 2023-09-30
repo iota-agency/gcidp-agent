@@ -28,11 +28,6 @@ func RunCmd(cmd *exec.Cmd) error {
 	return nil
 }
 
-func BuildPlugin(dst string, src string) error {
-	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", dst, src)
-	return RunCmd(cmd)
-}
-
 type LogLine struct {
 	Stream string `json:"stream"`
 }
