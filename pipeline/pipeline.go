@@ -20,8 +20,3 @@ func (p *PipeLine) Run(cli *client.Client) error {
 	}
 	return nil
 }
-
-func (p *PipeLine) Stages(s ...Stage) *PipeLine {
-	p.stages = append(p.stages, s...)
-	return p
-}

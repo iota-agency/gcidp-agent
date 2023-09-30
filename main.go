@@ -15,6 +15,9 @@ func main() {
 	}
 	runner := pipeline.NewRunner()
 	branch := runner.Branch()
+	if branch == "" {
+		panic("branch is empty")
+	}
 	p, err := plugin.Open("./plugin.so")
 	if err != nil {
 		log.Fatal(err)

@@ -12,7 +12,7 @@ const projectName = "website"
 func Cleanup(runner *pipeline.Runner, branch string) {
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
-	runner.Pipeline().Stages(
+	runner.Pipeline(
 		docker.RmContainer(containerName, true),
 		docker.RmImage(imageName, true),
 	)
@@ -22,9 +22,7 @@ func Build(runner *pipeline.Runner, branch string) {
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
-	runner.Pipeline().Stages(
-		docker.RmImage(imageName, true),
-		docker.RmContainer(containerName, true),
+	runner.Pipeline(
 		docker.Build(imageName, "./context/front").Target("prod"),
 		docker.Run(containerName, imageName).Config(
 			docker.Label("gcidp.branch", branch),
@@ -42,10 +40,8 @@ func Build(runner *pipeline.Runner, branch string) {
 	containerName = fmt.Sprintf("%s-houston-%s", projectName, branch)
 	imageName = fmt.Sprintf("%s-houston:%s", projectName, branch)
 	routerName = fmt.Sprintf("%s-%s-houston", projectName, branch)
-	runner.Pipeline().Stages(
-		docker.RmImage(imageName, true),
-		docker.RmContainer(containerName, true),
-		docker.Build(imageName, "./context/houston").Target("prod"),
+	runner.Pipeline(
+		docker.Build(imageName, "./context/admin").Target("prod"),
 		docker.Run(containerName, imageName).Config(
 			docker.Label("gcidp.branch", branch),
 			docker.Label(traefik.Enable, traefik.True),

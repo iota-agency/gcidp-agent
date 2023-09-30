@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -12,11 +13,10 @@ import (
 )
 
 type BuildCommand struct {
-	target       string
-	image        string
-	context      string
-	dockerIgnore string
-	exclude      []string
+	target  string
+	image   string
+	context string
+	exclude []string
 }
 
 func Build(image, context string) *BuildCommand {
@@ -54,11 +54,14 @@ func (d *BuildCommand) Run(cli *client.Client) error {
 	}
 
 	opts := types.ImageBuildOptions{
-		Dockerfile: "Dockerfile", // TODO: Make this configurable
-		Context:    tar,
-		Target:     d.target,
-		Tags:       []string{d.image},
+		Dockerfile:  "Dockerfile", // TODO: Make this configurable
+		Context:     tar,
+		Target:      d.target,
+		Tags:        []string{d.image},
+		Remove:      true,
+		ForceRemove: true,
 	}
+	fmt.Println(opts.Target, opts.Tags, d.context)
 	build, err := cli.ImageBuild(context.Background(), tar, opts)
 	if err != nil {
 		return err
@@ -72,11 +75,6 @@ func (d *BuildCommand) Run(cli *client.Client) error {
 
 func (d *BuildCommand) Exclude(files []string) *BuildCommand {
 	d.exclude = files
-	return d
-}
-
-func (d *BuildCommand) DockerIgnore(f string) *BuildCommand {
-	d.dockerIgnore = f
 	return d
 }
 

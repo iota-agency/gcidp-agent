@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -29,6 +28,10 @@ func RunCmd(cmd *exec.Cmd) error {
 	return nil
 }
 
+type LogLine struct {
+	Stream string `json:"stream"`
+}
+
 type ErrorLine struct {
 	Error       string      `json:"error"`
 	ErrorDetail ErrorDetail `json:"errorDetail"`
@@ -44,7 +47,10 @@ func Print(rd io.Reader) error {
 	scanner := bufio.NewScanner(rd)
 	for scanner.Scan() {
 		lastLine = scanner.Text()
-		fmt.Println(scanner.Text())
+		log := &LogLine{}
+		if err := json.Unmarshal(scanner.Bytes(), log); err != nil {
+			return err
+		}
 	}
 
 	errLine := &ErrorLine{}

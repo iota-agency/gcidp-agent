@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"github.com/docker/docker/client"
+	"log"
 	"os"
 	"sync"
 )
@@ -22,11 +23,10 @@ func NewRunner() *Runner {
 func (r *Runner) Run() error {
 	var wg sync.WaitGroup
 	wg.Add(len(r.pipelines))
-	var errors chan error
 	for _, pl := range r.pipelines {
 		go func(p *PipeLine) {
 			if err := p.Run(r.Client); err != nil {
-				errors <- err
+				log.Println(err)
 			}
 			defer wg.Done()
 		}(pl)
@@ -35,8 +35,8 @@ func (r *Runner) Run() error {
 	return nil
 }
 
-func (r *Runner) Pipeline() *PipeLine {
-	p := &PipeLine{}
+func (r *Runner) Pipeline(stages ...Stage) *PipeLine {
+	p := &PipeLine{stages: stages}
 	r.pipelines = append(r.pipelines, p)
 	return p
 }
