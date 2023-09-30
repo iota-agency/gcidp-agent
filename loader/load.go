@@ -37,7 +37,7 @@ func Load(fn string) (*Plugin, error) {
 	}, nil
 }
 
-func BuildPlugin(dst string, src string) error {
+func BuildPlugin(src string, dst string) error {
 	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", dst, src)
 	return utils.RunCmd(cmd)
 }

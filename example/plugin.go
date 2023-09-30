@@ -7,7 +7,7 @@ import (
 	"github.com/apollo-studios/gcidp-agent/traefik"
 )
 
-var BuildServerVersion = "0.1.6"
+var BuildServerVersion = "0.1.9"
 
 const projectName = "website"
 
