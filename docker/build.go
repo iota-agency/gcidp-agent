@@ -2,9 +2,10 @@ package docker
 
 import (
 	"context"
+	"fmt"
+	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/archive"
 	"os"
 	"path/filepath"
@@ -38,14 +39,15 @@ func ReadIgnore(f string) []string {
 	return result
 }
 
-func (d *BuildCommand) Run(cli *client.Client) error {
+func (d *BuildCommand) Run(ctx *pipeline.StageContext) error {
 	exclude := d.exclude
-	ignoreFile := filepath.Join(d.context, ".dockerignore")
+	dockerCtx := filepath.Join(ctx.WorkingDir, d.context)
+	ignoreFile := filepath.Join(dockerCtx, ".dockerignore")
 	if utils.FileExists(ignoreFile) {
 		exclude = append(exclude, ReadIgnore(ignoreFile)...)
 	}
 
-	tar, err := archive.TarWithOptions(d.context, &archive.TarOptions{
+	tar, err := archive.TarWithOptions(dockerCtx, &archive.TarOptions{
 		ExcludePatterns: exclude,
 	})
 	if err != nil {
@@ -60,7 +62,8 @@ func (d *BuildCommand) Run(cli *client.Client) error {
 		Remove:      true,
 		ForceRemove: true,
 	}
-	build, err := cli.ImageBuild(context.Background(), tar, opts)
+	fmt.Println(opts.Tags, dockerCtx)
+	build, err := ctx.Client.ImageBuild(context.Background(), tar, opts)
 	if err != nil {
 		return err
 	}

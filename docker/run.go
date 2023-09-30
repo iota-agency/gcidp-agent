@@ -2,10 +2,10 @@ package docker
 
 import (
 	"context"
+	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerNetwork "github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
 )
 
 type RunCommand struct {
@@ -28,12 +28,13 @@ func Run(cName, image string) *RunCommand {
 	}
 }
 
-func (d *RunCommand) Run(cli *client.Client) error {
-	resp, err := cli.ContainerCreate(context.Background(), d.config, nil, d.networkConfig, nil, d.cName)
+func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
+	d.config.Labels["gcidp.branch"] = ctx.Branch
+	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, nil, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
 	}
-	return cli.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	return ctx.Client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
 }
 
 func (d *RunCommand) Config(confs ...Conf) *RunCommand {

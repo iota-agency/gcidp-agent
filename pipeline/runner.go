@@ -3,29 +3,39 @@ package pipeline
 import (
 	"github.com/docker/docker/client"
 	"log"
-	"os"
 	"sync"
 )
 
 type Runner struct {
-	pipelines []*PipeLine
-	Client    *client.Client
+	pipelines  []*PipeLine
+	Client     *client.Client
+	WorkingDir string
+	Branch     string
 }
 
-func NewRunner() *Runner {
+func NewRunner(dir, branch string) *Runner {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
-	return &Runner{Client: cli}
+	return &Runner{
+		Client:     cli,
+		WorkingDir: dir,
+		Branch:     branch,
+	}
 }
 
 func (r *Runner) Run() error {
 	var wg sync.WaitGroup
 	wg.Add(len(r.pipelines))
+	context := &StageContext{
+		Client:     r.Client,
+		Branch:     r.Branch,
+		WorkingDir: r.WorkingDir,
+	}
 	for _, pl := range r.pipelines {
 		go func(p *PipeLine) {
-			if err := p.Run(r.Client); err != nil {
+			if err := p.Run(context); err != nil {
 				log.Println(err)
 			}
 			defer wg.Done()
@@ -39,8 +49,4 @@ func (r *Runner) Pipeline(stages ...Stage) *PipeLine {
 	p := &PipeLine{stages: stages}
 	r.pipelines = append(r.pipelines, p)
 	return p
-}
-
-func (r *Runner) Branch() string {
-	return os.Getenv("GITHUB_REF_NAME")
 }

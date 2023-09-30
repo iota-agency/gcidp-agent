@@ -9,8 +9,8 @@ import (
 
 type Plugin struct {
 	BuildVersion string
-	Build        func(runner *pipeline.Runner, branch string)
-	Cleanup      func(runner *pipeline.Runner, branch string)
+	Build        func(runner *pipeline.Runner)
+	Cleanup      func(runner *pipeline.Runner)
 }
 
 func Load(fn string) (*Plugin, error) {
@@ -31,8 +31,8 @@ func Load(fn string) (*Plugin, error) {
 		return nil, err
 	}
 	return &Plugin{
-		Cleanup:      cleanup.(func(runner *pipeline.Runner, branch string)),
-		Build:        build.(func(runner *pipeline.Runner, branch string)),
+		Cleanup:      cleanup.(func(runner *pipeline.Runner)),
+		Build:        build.(func(runner *pipeline.Runner)),
 		BuildVersion: *v.(*string),
 	}, nil
 }

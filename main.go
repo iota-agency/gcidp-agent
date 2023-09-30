@@ -9,22 +9,19 @@ import (
 
 func main() {
 	pluginFile := "./example/plugin.so"
+	branch := "APL-49"
 	if err := loader.BuildPlugin(pluginFile, "./example"); err != nil {
 		log.Fatal(err)
 	}
-	runner := pipeline.NewRunner()
-	branch := runner.Branch()
-	if branch == "" {
-		panic("branch is empty")
-	}
+	runner := pipeline.NewRunner("./context", branch)
 	p, err := loader.Load(pluginFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if os.Getenv("GCIDP_CLEANUP") == "True" {
-		p.Cleanup(runner, branch)
+		p.Cleanup(runner)
 	} else {
-		p.Build(runner, branch)
+		p.Build(runner)
 	}
 	if err := runner.Run(); err != nil {
 		log.Fatal(err)

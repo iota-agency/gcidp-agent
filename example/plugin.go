@@ -11,7 +11,8 @@ var BuildServerVersion = "0.1.6"
 
 const projectName = "website"
 
-func Cleanup(runner *pipeline.Runner, branch string) {
+func Cleanup(runner *pipeline.Runner) {
+	branch := runner.Branch
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	runner.Pipeline(
@@ -20,15 +21,15 @@ func Cleanup(runner *pipeline.Runner, branch string) {
 	)
 }
 
-func Build(runner *pipeline.Runner, branch string) {
+func Build(runner *pipeline.Runner) {
+	branch := runner.Branch
 	containerName := fmt.Sprintf("%s-front-%s", projectName, branch)
 	imageName := fmt.Sprintf("%s-front:%s", projectName, branch)
 	routerName := fmt.Sprintf("%s-%s-front", projectName, branch)
 	runner.Pipeline(
-		docker.Build(imageName, "./context/front").Target("prod"),
+		docker.Build(imageName, "./front").Target("prod"),
 		docker.RmContainer(containerName, true),
 		docker.Run(containerName, imageName).Config(
-			docker.Label("gcidp.branch", branch),
 			docker.Label(traefik.Enable, traefik.True),
 			docker.Label(traefik.TLS(routerName), traefik.True),
 			docker.Label(traefik.TLSResolver(routerName), "letsencrypt"),
@@ -44,10 +45,9 @@ func Build(runner *pipeline.Runner, branch string) {
 	imageName = fmt.Sprintf("%s-houston:%s", projectName, branch)
 	routerName = fmt.Sprintf("%s-%s-houston", projectName, branch)
 	runner.Pipeline(
-		docker.Build(imageName, "./context/admin").Target("prod"),
+		docker.Build(imageName, "./admin").Target("prod"),
 		docker.RmContainer(containerName, true),
 		docker.Run(containerName, imageName).Config(
-			docker.Label("gcidp.branch", branch),
 			docker.Label(traefik.Enable, traefik.True),
 			docker.Label(traefik.TLS(routerName), traefik.True),
 			docker.Label(traefik.TLSResolver(routerName), "letsencrypt"),
