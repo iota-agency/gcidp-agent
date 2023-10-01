@@ -8,6 +8,7 @@ type StageContext struct {
 	Client     *client.Client
 	WorkingDir string
 	Branch     string
+	Repo       string
 }
 
 type Stage interface {

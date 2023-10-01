@@ -11,7 +11,7 @@ const (
 )
 
 func Rule(routerName string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.rule", routerName)
+	return fmt.Sprintf("traefik.http.routers.%s.rule", strings.ToLower(routerName))
 }
 
 func Host(host string) string {
@@ -19,13 +19,13 @@ func Host(host string) string {
 }
 
 func TLS(routerName string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.tls", routerName)
+	return fmt.Sprintf("traefik.http.routers.%s.tls", strings.ToLower(routerName))
 }
 
 func TLSResolver(routerName string) string {
-	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", routerName)
+	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", strings.ToLower(routerName))
 }
 
 func LoadBalancerPort(routerName string) string {
-	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", routerName)
+	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", strings.ToLower(routerName))
 }

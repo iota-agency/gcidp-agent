@@ -11,9 +11,10 @@ type Runner struct {
 	Client     *client.Client
 	WorkingDir string
 	Branch     string
+	Repo       string
 }
 
-func NewRunner(dir, branch string) *Runner {
+func NewRunner(dir, repo, branch string) *Runner {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
@@ -22,6 +23,7 @@ func NewRunner(dir, branch string) *Runner {
 		Client:     cli,
 		WorkingDir: dir,
 		Branch:     branch,
+		Repo:       repo,
 	}
 }
 
@@ -32,6 +34,7 @@ func (r *Runner) Run() error {
 		Client:     r.Client,
 		Branch:     r.Branch,
 		WorkingDir: r.WorkingDir,
+		Repo:       r.Repo,
 	}
 	for _, pl := range r.pipelines {
 		go func(p *PipeLine) {

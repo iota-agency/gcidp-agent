@@ -30,6 +30,7 @@ func Run(cName, image string) *RunCommand {
 
 func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 	d.config.Labels["gcidp.branch"] = ctx.Branch
+	d.config.Labels["gcidp.repo"] = ctx.Repo
 	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, nil, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
