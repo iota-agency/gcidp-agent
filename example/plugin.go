@@ -35,6 +35,8 @@ func Build(runner *pipeline.Runner) {
 			docker.Label(traefik.TLSResolver(routerName), "letsencrypt"),
 			docker.Label(traefik.Rule(routerName), traefik.Host(fmt.Sprintf("%s.%s.apollos.studio", branch, projectName))),
 			docker.Label(traefik.LoadBalancerPort(routerName), "80"),
+			docker.Label(traefik.Wildcard(routerName, "main"), "apollos.studio"),
+			docker.Label(traefik.Wildcard(routerName, "sans"), "*.apollos.studio"),
 			docker.Env("NUXT_PUBLIC_API_URL", "https://api.apollos.studio"),
 			docker.Env("NUXT_PUBLIC_SSR_API_URL", "http://back:3030"),
 			docker.Network("app"),
