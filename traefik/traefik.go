@@ -31,5 +31,5 @@ func LoadBalancerPort(routerName string) string {
 }
 
 func Wildcard(rn, t string) string {
-	return fmt.Sprintf("traefik.http.services.%s.tls.domains[0].%s", strings.ToLower(rn), t)
+	return fmt.Sprintf("traefik.http.routers.%s.tls.domains[0].%s", strings.ToLower(rn), t)
 }
