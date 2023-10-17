@@ -11,6 +11,7 @@ import (
 type RunCommand struct {
 	cName         string
 	config        *container.Config
+	hostConfig    *container.HostConfig
 	networkConfig *dockerNetwork.NetworkingConfig
 }
 
@@ -25,13 +26,14 @@ func Run(cName, image string) *RunCommand {
 			},
 			Env: []string{},
 		},
+		hostConfig: &container.HostConfig{},
 	}
 }
 
 func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 	d.config.Labels["gcidp.branch"] = ctx.Branch
 	d.config.Labels["gcidp.repo"] = ctx.Repo
-	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, nil, d.networkConfig, nil, d.cName)
+	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, d.hostConfig, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
 	}

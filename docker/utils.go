@@ -1,7 +1,12 @@
 package docker
 
 import (
+	"github.com/docker/docker/api/types/mount"
 	dockerNetwork "github.com/docker/docker/api/types/network"
+	"github.com/docker/go-connections/nat"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Conf interface {
@@ -48,4 +53,46 @@ func (n *network) apply(d *RunCommand) {
 
 func Network(name string) Conf {
 	return &network{name}
+}
+
+type portBinding struct {
+	hostPort, containerPort string
+}
+
+func (p *portBinding) apply(d *RunCommand) {
+	d.hostConfig.PortBindings = nat.PortMap{
+		nat.Port(p.containerPort): []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0",
+				HostPort: p.hostPort,
+			},
+		},
+	}
+}
+
+func PortBinding(hostPort, containerPort string) Conf {
+	return &portBinding{hostPort, containerPort}
+}
+
+type volume struct {
+	source, target string
+}
+
+func (v *volume) apply(d *RunCommand) {
+	d.hostConfig.Mounts = append(d.hostConfig.Mounts, mount.Mount{
+		Type:   mount.TypeBind,
+		Source: v.source,
+		Target: v.target,
+	})
+}
+
+func Volume(source, target string) Conf {
+	if strings.HasPrefix(source, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		source = filepath.Join(home, source[2:])
+	}
+	return &volume{source, target}
 }

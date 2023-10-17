@@ -67,3 +67,18 @@ func Print(rd io.Reader) error {
 
 	return nil
 }
+
+func DirExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return info.IsDir()
+}
+
+func MkDirIfNone(dir string) error {
+	if DirExists(dir) {
+		return nil
+	}
+	return os.MkdirAll(dir, 0755)
+}

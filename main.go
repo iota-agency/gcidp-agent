@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	pluginFile := "./example/plugin.so"
+	pluginFile := "./context/.gcidp/plugin.so"
 	branch := "APL-49"
-	if err := loader.BuildPlugin(pluginFile, "./example"); err != nil {
-		log.Fatal(err)
+	if err := loader.BuildPlugin("./context/.gcidp/build.go", pluginFile); err != nil {
+		log.Fatal("Build failed: ", err)
 	}
-	runner := pipeline.NewRunner("./context", branch)
+	runner := pipeline.NewRunner("./context", "website", branch)
 	p, err := loader.Load(pluginFile)
 	if err != nil {
 		log.Fatal(err)
