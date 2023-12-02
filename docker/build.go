@@ -1,15 +1,32 @@
 package docker
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
+	"errors"
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+type LogLine struct {
+	Stream string `json:"stream"`
+}
+
+type ErrorLine struct {
+	Error       string      `json:"error"`
+	ErrorDetail ErrorDetail `json:"errorDetail"`
+}
+
+type ErrorDetail struct {
+	Message string `json:"message"`
+}
 
 type BuildCommand struct {
 	target  string
@@ -66,10 +83,36 @@ func (d *BuildCommand) Run(ctx *pipeline.StageContext) error {
 		return err
 	}
 	defer build.Body.Close()
-	if err := utils.Print(build.Body); err != nil {
+	if err := d.writeLogs(ctx.Logger, build.Body); err != nil {
+		ctx.Logger.Error(err.Error())
 		return err
 	}
 	return nil
+}
+
+func (d *BuildCommand) writeLogs(logger pipeline.Logger, rd io.Reader) error {
+	var lastLine string
+
+	scanner := bufio.NewScanner(rd)
+	for scanner.Scan() {
+		lastLine = scanner.Text()
+		log := &LogLine{}
+		if err := json.Unmarshal(scanner.Bytes(), log); err != nil {
+			return err
+		}
+		if log.Stream != "" {
+			logger.Info(log.Stream)
+		}
+	}
+
+	errLine := &ErrorLine{}
+	if err := json.Unmarshal([]byte(lastLine), errLine); err != nil {
+		return err
+	}
+	if errLine.Error != "" {
+		return errors.New(errLine.Error)
+	}
+	return scanner.Err()
 }
 
 func (d *BuildCommand) Exclude(files []string) *BuildCommand {

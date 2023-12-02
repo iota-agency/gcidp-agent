@@ -6,6 +6,7 @@ import (
 
 type StageContext struct {
 	Client     *client.Client
+	Logger     Logger
 	WorkingDir string
 	Branch     string
 	Repo       string

@@ -1,10 +1,7 @@
 package utils
 
 import (
-	"bufio"
-	"encoding/json"
 	"errors"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,46 +22,6 @@ func RunCmd(cmd *exec.Cmd) error {
 	if err := cmd.Run(); err != nil {
 		return errors.New(errbuf.String())
 	}
-	return nil
-}
-
-type LogLine struct {
-	Stream string `json:"stream"`
-}
-
-type ErrorLine struct {
-	Error       string      `json:"error"`
-	ErrorDetail ErrorDetail `json:"errorDetail"`
-}
-
-type ErrorDetail struct {
-	Message string `json:"message"`
-}
-
-func Print(rd io.Reader) error {
-	var lastLine string
-
-	scanner := bufio.NewScanner(rd)
-	for scanner.Scan() {
-		lastLine = scanner.Text()
-		log := &LogLine{}
-		if err := json.Unmarshal(scanner.Bytes(), log); err != nil {
-			return err
-		}
-	}
-
-	errLine := &ErrorLine{}
-	if err := json.Unmarshal([]byte(lastLine), errLine); err != nil {
-		return err
-	}
-	if errLine.Error != "" {
-		return errors.New(errLine.Error)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
 	return nil
 }
 

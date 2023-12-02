@@ -9,21 +9,36 @@ import (
 type Runner struct {
 	pipelines  []*PipeLine
 	Client     *client.Client
+	Logger     Logger
 	WorkingDir string
 	Branch     string
 	Repo       string
 }
 
-func NewRunner(dir, repo, branch string) *Runner {
+type Logger interface {
+	Debug(log string)
+	Info(log string)
+	Error(log string)
+}
+
+type RunnerOptions struct {
+	WorkingDir string
+	Branch     string
+	Repo       string
+	Logger     Logger
+}
+
+func NewRunner(opts RunnerOptions) *Runner {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
 	}
 	return &Runner{
 		Client:     cli,
-		WorkingDir: dir,
-		Branch:     branch,
-		Repo:       repo,
+		WorkingDir: opts.WorkingDir,
+		Branch:     opts.Branch,
+		Repo:       opts.Repo,
+		Logger:     opts.Logger,
 	}
 }
 
@@ -32,6 +47,7 @@ func (r *Runner) Run() error {
 	wg.Add(len(r.pipelines))
 	context := &StageContext{
 		Client:     r.Client,
+		Logger:     r.Logger,
 		Branch:     r.Branch,
 		WorkingDir: r.WorkingDir,
 		Repo:       r.Repo,
