@@ -48,6 +48,14 @@ runner.Pipeline(
 )
 ```
 
+## Logging
+You can log messages to the UI using the `Logger`
+```go
+runner.Logger.Debug("message")
+runner.Logger.Info("message")
+runner.Logger.Error("message")
+```
+
 ## Docker
 Building a docker image
 ```go
