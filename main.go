@@ -7,13 +7,33 @@ import (
 	"os"
 )
 
+type Logger struct {
+}
+
+func (l *Logger) Debug(msg string) {
+	log.Println("DEBUG: ", msg)
+}
+
+func (l *Logger) Info(msg string) {
+	log.Println("INFO: ", msg)
+}
+
+func (l *Logger) Error(msg string) {
+	log.Println("ERROR: ", msg)
+}
+
 func main() {
 	pluginFile := "./context/.gcidp/plugin.so"
 	branch := "APL-49"
 	if err := loader.BuildPlugin("./context/.gcidp/build.go", pluginFile); err != nil {
 		log.Fatal("Build failed: ", err)
 	}
-	runner := pipeline.NewRunner("./context", "website", branch)
+	runner := pipeline.NewRunner(pipeline.RunnerOptions{
+		WorkingDir: "./context",
+		Branch:     branch,
+		Repo:       "website",
+		Logger:     &Logger{},
+	})
 	p, err := loader.Load(pluginFile)
 	if err != nil {
 		log.Fatal(err)

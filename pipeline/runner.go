@@ -2,7 +2,6 @@ package pipeline
 
 import (
 	"github.com/docker/docker/client"
-	"log"
 	"sync"
 )
 
@@ -55,7 +54,7 @@ func (r *Runner) Run() error {
 	for _, pl := range r.pipelines {
 		go func(p *PipeLine) {
 			if err := p.Run(context); err != nil {
-				log.Println(err)
+				r.Logger.Error(err.Error())
 			}
 			defer wg.Done()
 		}(pl)

@@ -5,7 +5,6 @@ import (
 	"github.com/apollo-studios/gcidp-agent/pipeline"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
-	"log"
 )
 
 type RmContainerCommand struct {
@@ -56,7 +55,7 @@ func (d *RmContainerCommand) Run(ctx *pipeline.StageContext) error {
 	err := ctx.Client.ContainerRemove(context.Background(), d.name, types.ContainerRemoveOptions{Force: true})
 	if err != nil {
 		if d.silent {
-			log.Println(err)
+			ctx.Logger.Error(err.Error())
 		} else {
 			return err
 		}
@@ -68,7 +67,7 @@ func (d *RmImageCommand) Run(ctx *pipeline.StageContext) error {
 	_, err := ctx.Client.ImageRemove(context.Background(), d.name, types.ImageRemoveOptions{Force: true})
 	if err != nil {
 		if d.silent {
-			log.Println(err)
+			ctx.Logger.Error(err.Error())
 		} else {
 			return err
 		}
