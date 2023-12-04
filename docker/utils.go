@@ -96,3 +96,15 @@ func Volume(source, target string) Conf {
 	}
 	return &volume{source, target}
 }
+
+func Hostname(name string) Conf {
+	return &hostname{name}
+}
+
+type hostname struct {
+	name string
+}
+
+func (h *hostname) apply(d *RunCommand) {
+	d.config.Hostname = h.name
+}

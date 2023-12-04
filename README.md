@@ -116,3 +116,15 @@ Equivalent to
 networks:
   - app
 ```
+
+Set hostname
+```go
+docker.Hostname("postgres")
+```
+
+Equivalent to
+```yaml
+db:
+  image: postgres
+  hostname: postgres
+```
