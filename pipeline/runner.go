@@ -9,9 +9,14 @@ type Runner struct {
 	pipelines  []*PipeLine
 	Client     *client.Client
 	Logger     Logger
+	Secrets    SecretsStore
 	WorkingDir string
 	Branch     string
 	Repo       string
+}
+
+type SecretsStore interface {
+	Get(key string) (string, error)
 }
 
 type Logger interface {
@@ -24,6 +29,7 @@ type RunnerOptions struct {
 	WorkingDir string
 	Branch     string
 	Repo       string
+	Secrets    SecretsStore
 	Logger     Logger
 }
 
@@ -38,6 +44,7 @@ func NewRunner(opts RunnerOptions) *Runner {
 		Branch:     opts.Branch,
 		Repo:       opts.Repo,
 		Logger:     opts.Logger,
+		Secrets:    opts.Secrets,
 	}
 }
 

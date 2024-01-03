@@ -56,6 +56,17 @@ runner.Logger.Info("message")
 runner.Logger.Error("message")
 ```
 
+## Secrets
+You can define secrets in the UI and use them in your build file
+```go
+v, err := runner.Secrets.Get("secretName")
+if err != nil {
+    runner.Logger.Error(err.Error())
+    return
+}
+docker.Env("SECRET_API_KEY", v)
+```
+
 ## Docker
 Building a docker image
 ```go
