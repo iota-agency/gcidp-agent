@@ -44,7 +44,7 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 	if err := ctx.Client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
-	return nil
+	return ctx.Meta.Add("container", resp.ID)
 }
 
 func (d *RunCommand) Config(confs ...Conf) *RunCommand {

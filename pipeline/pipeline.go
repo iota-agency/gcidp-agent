@@ -11,6 +11,8 @@ type StageContext struct {
 	WorkingDir      string
 	Branch          string
 	Repo            string
+	Secrets         SecretsStore
+	Meta            Meta
 }
 
 type Stage interface {

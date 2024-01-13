@@ -18,6 +18,13 @@ type Runner struct {
 	Branch     string
 	Repo       string
 	Cleanup    bool
+	Meta       Meta
+}
+
+type Meta interface {
+	Get(key string) (string, error)
+	Add(key, value string) error
+	Set(key, value string) error
 }
 
 type SecretsStore interface {
@@ -37,6 +44,7 @@ type RunnerOptions struct {
 	Repo       string
 	Secrets    SecretsStore
 	Logger     Logger
+	Meta       Meta
 	Cleanup    bool
 }
 
@@ -53,6 +61,7 @@ func NewRunner(opts RunnerOptions) *Runner {
 		Logger:     opts.Logger,
 		Secrets:    opts.Secrets,
 		Cleanup:    opts.Cleanup,
+		Meta:       opts.Meta,
 	}
 }
 
@@ -79,6 +88,8 @@ func (r *Runner) Run() error {
 		WorkingDir:      r.WorkingDir,
 		Repo:            r.Repo,
 		InternalNetwork: internalNetwork,
+		Secrets:         r.Secrets,
+		Meta:            r.Meta,
 	}
 	var wg sync.WaitGroup
 	wg.Add(len(r.pipelines))
