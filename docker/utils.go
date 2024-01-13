@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"fmt"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types/mount"
 	dockerNetwork "github.com/docker/docker/api/types/network"
@@ -95,6 +96,7 @@ func Volume(source, target string) Conf {
 		}
 		source = filepath.Join(home, source[2:])
 	}
+	fmt.Println("source", source)
 	if err := utils.MkDirIfNone(source); err != nil {
 		panic(err)
 	}
