@@ -6,6 +6,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerNetwork "github.com/docker/docker/api/types/network"
+	"log"
 )
 
 type RunCommand struct {
@@ -42,7 +43,10 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 
 func (d *RunCommand) Config(confs ...Conf) *RunCommand {
 	for _, c := range confs {
-		c.apply(d)
+		err := c.apply(d)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 	return d
 }

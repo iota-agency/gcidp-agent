@@ -12,15 +12,16 @@ import (
 )
 
 type Conf interface {
-	apply(d *RunCommand)
+	apply(d *RunCommand) error
 }
 
 type label struct {
 	key, value string
 }
 
-func (l *label) apply(d *RunCommand) {
+func (l *label) apply(d *RunCommand) error {
 	d.config.Labels[l.key] = l.value
+	return nil
 }
 
 func Label(key, value string) Conf {
@@ -31,8 +32,9 @@ type env struct {
 	key, value string
 }
 
-func (e *env) apply(d *RunCommand) {
+func (e *env) apply(d *RunCommand) error {
 	d.config.Env = append(d.config.Env, e.key+"="+e.value)
+	return nil
 }
 
 func Env(key, value string) Conf {
@@ -43,7 +45,7 @@ type network struct {
 	name string
 }
 
-func (n *network) apply(d *RunCommand) {
+func (n *network) apply(d *RunCommand) error {
 	d.networkConfig = &dockerNetwork.NetworkingConfig{
 		EndpointsConfig: map[string]*dockerNetwork.EndpointSettings{
 			n.name: {
@@ -51,6 +53,7 @@ func (n *network) apply(d *RunCommand) {
 			},
 		},
 	}
+	return nil
 }
 
 func Network(name string) Conf {
@@ -61,7 +64,7 @@ type portBinding struct {
 	hostPort, containerPort string
 }
 
-func (p *portBinding) apply(d *RunCommand) {
+func (p *portBinding) apply(d *RunCommand) error {
 	d.hostConfig.PortBindings = nat.PortMap{
 		nat.Port(p.containerPort): []nat.PortBinding{
 			{
@@ -70,6 +73,7 @@ func (p *portBinding) apply(d *RunCommand) {
 			},
 		},
 	}
+	return nil
 }
 
 func PortBinding(hostPort, containerPort string) Conf {
@@ -80,26 +84,27 @@ type volume struct {
 	source, target string
 }
 
-func (v *volume) apply(d *RunCommand) {
+func (v *volume) apply(d *RunCommand) error {
+	fmt.Println("source", v.source)
+	if err := utils.MkDirIfNone(v.source); err != nil {
+		return err
+	}
+	if strings.HasPrefix(v.source, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		v.source = filepath.Join(home, v.source[2:])
+	}
 	d.hostConfig.Mounts = append(d.hostConfig.Mounts, mount.Mount{
 		Type:   mount.TypeBind,
 		Source: v.source,
 		Target: v.target,
 	})
+	return nil
 }
 
 func Volume(source, target string) Conf {
-	if strings.HasPrefix(source, "~/") {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-		source = filepath.Join(home, source[2:])
-	}
-	fmt.Println("source", source)
-	if err := utils.MkDirIfNone(source); err != nil {
-		panic(err)
-	}
 	return &volume{source, target}
 }
 
@@ -111,6 +116,7 @@ type hostname struct {
 	name string
 }
 
-func (h *hostname) apply(d *RunCommand) {
+func (h *hostname) apply(d *RunCommand) error {
 	d.config.Hostname = h.name
+	return nil
 }
