@@ -5,24 +5,25 @@ import (
 )
 
 type StageContext struct {
-	Client     *client.Client
-	Logger     Logger
-	WorkingDir string
-	Branch     string
-	Repo       string
+	Client          *client.Client
+	Logger          Logger
+	InternalNetwork string
+	WorkingDir      string
+	Branch          string
+	Repo            string
 }
 
 type Stage interface {
-	Run(context *StageContext) error
+	Run(ctx *StageContext) error
 }
 
 type PipeLine struct {
 	stages []Stage
 }
 
-func (p *PipeLine) Run(context *StageContext) error {
+func (p *PipeLine) Run(ctx *StageContext) error {
 	for _, s := range p.stages {
-		if err := s.Run(context); err != nil {
+		if err := s.Run(ctx); err != nil {
 			return err
 		}
 	}

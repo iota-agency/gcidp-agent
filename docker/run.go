@@ -6,7 +6,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerNetwork "github.com/docker/docker/api/types/network"
-	"log"
 )
 
 type RunCommand struct {
@@ -14,39 +13,41 @@ type RunCommand struct {
 	config        *container.Config
 	hostConfig    *container.HostConfig
 	networkConfig *dockerNetwork.NetworkingConfig
+	confs         []Conf
 }
 
 func Run(cName, image string) *RunCommand {
 	return &RunCommand{
 		cName: cName,
 		config: &container.Config{
-			Image: image,
-			Tty:   false,
-			Labels: map[string]string{
-				"gcidp.enable": "true",
-			},
-			Env: []string{},
+			Image:  image,
+			Tty:    false,
+			Labels: map[string]string{},
+			Env:    []string{},
 		},
 		hostConfig: &container.HostConfig{},
 	}
 }
 
 func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
-	d.config.Labels["gcidp.branch"] = ctx.Branch
-	d.config.Labels["gcidp.repo"] = ctx.Repo
+	confs := append(d.confs, Network(ctx.InternalNetwork))
+	for _, c := range confs {
+		err := c.apply(d)
+		if err != nil {
+			return err
+		}
+	}
 	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, d.hostConfig, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
 	}
-	return ctx.Client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{})
+	if err := ctx.Client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *RunCommand) Config(confs ...Conf) *RunCommand {
-	for _, c := range confs {
-		err := c.apply(d)
-		if err != nil {
-			log.Print(err)
-		}
-	}
+	d.confs = append(d.confs, confs...)
 	return d
 }

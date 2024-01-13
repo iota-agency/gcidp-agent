@@ -1,6 +1,10 @@
 package pipeline
 
 import (
+	"context"
+	"fmt"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"sync"
 )
@@ -13,6 +17,7 @@ type Runner struct {
 	WorkingDir string
 	Branch     string
 	Repo       string
+	Cleanup    bool
 }
 
 type SecretsStore interface {
@@ -23,6 +28,7 @@ type Logger interface {
 	Debug(log string)
 	Info(log string)
 	Error(log string)
+	Warn(log string)
 }
 
 type RunnerOptions struct {
@@ -31,6 +37,7 @@ type RunnerOptions struct {
 	Repo       string
 	Secrets    SecretsStore
 	Logger     Logger
+	Cleanup    bool
 }
 
 func NewRunner(opts RunnerOptions) *Runner {
@@ -45,28 +52,51 @@ func NewRunner(opts RunnerOptions) *Runner {
 		Repo:       opts.Repo,
 		Logger:     opts.Logger,
 		Secrets:    opts.Secrets,
+		Cleanup:    opts.Cleanup,
 	}
 }
 
 func (r *Runner) Run() error {
+	internalNetwork := fmt.Sprintf("%s-%s-internal", r.Repo, r.Branch)
+	if !r.Cleanup {
+		filter := filters.NewArgs()
+		filter.Add("name", internalNetwork)
+		networks, err := r.Client.NetworkList(context.Background(), types.NetworkListOptions{Filters: filter})
+		if err != nil {
+			return err
+		}
+		if len(networks) == 0 {
+			_, err := r.Client.NetworkCreate(context.Background(), internalNetwork, types.NetworkCreate{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+	ctx := &StageContext{
+		Client:          r.Client,
+		Logger:          r.Logger,
+		Branch:          r.Branch,
+		WorkingDir:      r.WorkingDir,
+		Repo:            r.Repo,
+		InternalNetwork: internalNetwork,
+	}
 	var wg sync.WaitGroup
 	wg.Add(len(r.pipelines))
-	context := &StageContext{
-		Client:     r.Client,
-		Logger:     r.Logger,
-		Branch:     r.Branch,
-		WorkingDir: r.WorkingDir,
-		Repo:       r.Repo,
-	}
 	for _, pl := range r.pipelines {
 		go func(p *PipeLine) {
-			if err := p.Run(context); err != nil {
+			if err := p.Run(ctx); err != nil {
 				r.Logger.Error(err.Error())
 			}
 			defer wg.Done()
 		}(pl)
 	}
 	wg.Wait()
+	if r.Cleanup {
+		err := r.Client.NetworkRemove(context.Background(), internalNetwork)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

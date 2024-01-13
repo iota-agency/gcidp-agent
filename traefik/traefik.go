@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	True   = "true"
-	Enable = "traefik.enable"
+	True    = "true"
+	Enable  = "traefik.enable"
+	Network = "traefik.docker.network"
 )
 
 func Rule(routerName string) string {

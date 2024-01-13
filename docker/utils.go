@@ -2,6 +2,7 @@ package docker
 
 import (
 	"fmt"
+	"github.com/apollo-studios/gcidp-agent/traefik"
 	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types/mount"
 	dockerNetwork "github.com/docker/docker/api/types/network"
@@ -41,6 +42,35 @@ func Env(key, value string) Conf {
 	return &env{key, value}
 }
 
+type expose struct {
+	host, port string
+}
+
+func (e *expose) apply(d *RunCommand) error {
+	routerName := utils.RandStringLowerCharSet(10)
+	confs := []Conf{
+		Label(traefik.Enable, "true"),
+		Label(traefik.TLS(routerName), traefik.True),
+		Label(traefik.TLSResolver(routerName), "letsencrypt"),
+		Label(traefik.Rule(routerName), traefik.Host(e.host)),
+		Label(traefik.LoadBalancerPort(routerName), e.port),
+		Label(traefik.Wildcard(routerName, "main"), "apollos.studio"),
+		Label(traefik.Wildcard(routerName, "sans"), "*.apollos.studio"),
+		Label(traefik.Network, "app"),
+		Network("app"),
+	}
+	for _, conf := range confs {
+		if err := conf.apply(d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Expose(host, port string) Conf {
+	return &expose{host, port}
+}
+
 type network struct {
 	name string
 }
@@ -65,8 +95,11 @@ type portBinding struct {
 }
 
 func (p *portBinding) apply(d *RunCommand) error {
+	d.config.ExposedPorts = nat.PortSet{
+		nat.Port(fmt.Sprintf("%s/tcp", p.containerPort)): struct{}{},
+	}
 	d.hostConfig.PortBindings = nat.PortMap{
-		nat.Port(p.containerPort): []nat.PortBinding{
+		nat.Port(fmt.Sprintf("%s/tcp", p.containerPort)): []nat.PortBinding{
 			{
 				HostIP:   "0.0.0.0",
 				HostPort: p.hostPort,
@@ -80,11 +113,11 @@ func PortBinding(hostPort, containerPort string) Conf {
 	return &portBinding{hostPort, containerPort}
 }
 
-type volume struct {
+type mountVolume struct {
 	source, target string
 }
 
-func (v *volume) apply(d *RunCommand) error {
+func (v *mountVolume) apply(d *RunCommand) error {
 	fmt.Println("source", v.source)
 	if err := utils.MkDirIfNone(v.source); err != nil {
 		return err
@@ -104,8 +137,25 @@ func (v *volume) apply(d *RunCommand) error {
 	return nil
 }
 
-func Volume(source, target string) Conf {
-	return &volume{source, target}
+func BindVolume(source, target string) Conf {
+	return &mountVolume{source, target}
+}
+
+type volume struct {
+	name, target string
+}
+
+func (v *volume) apply(d *RunCommand) error {
+	d.hostConfig.Mounts = append(d.hostConfig.Mounts, mount.Mount{
+		Type:   mount.TypeVolume,
+		Source: v.name,
+		Target: v.target,
+	})
+	return nil
+}
+
+func Volume(name, target string) Conf {
+	return &volume{name, target}
 }
 
 func Hostname(name string) Conf {

@@ -22,3 +22,4 @@ go.work
 .idea
 context/
 example/plugin.so
+tests/test/.gcidp/plugin.so
