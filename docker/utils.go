@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"github.com/apollo-studios/gcidp-agent/utils"
 	"github.com/docker/docker/api/types/mount"
 	dockerNetwork "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
@@ -93,6 +94,9 @@ func Volume(source, target string) Conf {
 			panic(err)
 		}
 		source = filepath.Join(home, source[2:])
+	}
+	if err := utils.MkDirIfNone(source); err != nil {
+		panic(err)
 	}
 	return &volume{source, target}
 }

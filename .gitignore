@@ -20,5 +20,5 @@
 # Go workspace file
 go.work
 .idea
-context
+context/
 example/plugin.so
