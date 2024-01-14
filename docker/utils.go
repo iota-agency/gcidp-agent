@@ -51,6 +51,7 @@ func (e *expose) apply(d *RunCommand) error {
 	isDevEnv := os.Getenv("GO_APP_ENV") == "development"
 	confs := []Conf{
 		Label(traefik.Enable, "true"),
+		Label(traefik.DefineService(routerName), routerName),
 		Label(traefik.LoadBalancerPort(routerName), e.port),
 	}
 	if isDevEnv {

@@ -27,6 +27,10 @@ func TLSResolver(routerName string) string {
 	return fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", strings.ToLower(routerName))
 }
 
+func DefineService(routerName string) string {
+	return fmt.Sprintf("traefik.http.routers.%s.service", strings.ToLower(routerName))
+}
+
 func LoadBalancerPort(routerName string) string {
 	return fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", strings.ToLower(routerName))
 }
