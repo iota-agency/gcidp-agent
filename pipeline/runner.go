@@ -23,6 +23,7 @@ type Runner struct {
 
 type Meta interface {
 	Get(key string) (string, error)
+	GetAll(key string) ([]string, error)
 	Add(key, value string) error
 	Set(key, value string) error
 }

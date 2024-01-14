@@ -48,17 +48,29 @@ type expose struct {
 
 func (e *expose) apply(d *RunCommand) error {
 	routerName := utils.RandStringLowerCharSet(10)
+	isDevEnv := os.Getenv("GO_APP_ENV") == "development"
 	confs := []Conf{
 		Label(traefik.Enable, "true"),
 		Label(traefik.TLS(routerName), traefik.True),
-		Label(traefik.TLSResolver(routerName), "letsencrypt"),
-		Label(traefik.Rule(routerName), traefik.Host(e.host)),
 		Label(traefik.LoadBalancerPort(routerName), e.port),
-		Label(traefik.Wildcard(routerName, "main"), "apollos.studio"),
-		Label(traefik.Wildcard(routerName, "sans"), "*.apollos.studio"),
+	}
+	if isDevEnv {
+		subdomain := strings.Split(e.host, ".")[0]
+		confs = append(confs,
+			Label(traefik.Rule(routerName), traefik.Host(subdomain+".localhost")),
+		)
+	} else {
+		confs = append(confs,
+			Label(traefik.TLSResolver(routerName), "letsencrypt"),
+			Label(traefik.Rule(routerName), traefik.Host(e.host)),
+			Label(traefik.Wildcard(routerName, "main"), "apollos.studio"),
+			Label(traefik.Wildcard(routerName, "sans"), "*.apollos.studio"),
+		)
+	}
+	confs = append(confs,
 		Label(traefik.Network, "app"),
 		Network("app"),
-	}
+	)
 	for _, conf := range confs {
 		if err := conf.apply(d); err != nil {
 			return err
@@ -118,7 +130,6 @@ type mountVolume struct {
 }
 
 func (v *mountVolume) apply(d *RunCommand) error {
-	fmt.Println("source", v.source)
 	if err := utils.MkDirIfNone(v.source); err != nil {
 		return err
 	}
