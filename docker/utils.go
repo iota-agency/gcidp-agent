@@ -51,7 +51,6 @@ func (e *expose) apply(d *RunCommand) error {
 	isDevEnv := os.Getenv("GO_APP_ENV") == "development"
 	confs := []Conf{
 		Label(traefik.Enable, "true"),
-		Label(traefik.TLS(routerName), traefik.True),
 		Label(traefik.LoadBalancerPort(routerName), e.port),
 	}
 	if isDevEnv {
@@ -61,6 +60,7 @@ func (e *expose) apply(d *RunCommand) error {
 		)
 	} else {
 		confs = append(confs,
+			Label(traefik.TLS(routerName), traefik.True),
 			Label(traefik.TLSResolver(routerName), "letsencrypt"),
 			Label(traefik.Rule(routerName), traefik.Host(e.host)),
 			Label(traefik.Wildcard(routerName, "main"), "apollos.studio"),
