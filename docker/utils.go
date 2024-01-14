@@ -88,12 +88,13 @@ type network struct {
 }
 
 func (n *network) apply(d *RunCommand) error {
-	d.networkConfig = &dockerNetwork.NetworkingConfig{
-		EndpointsConfig: map[string]*dockerNetwork.EndpointSettings{
-			n.name: {
-				NetworkID: n.name,
-			},
-		},
+	if d.networkConfig == nil {
+		d.networkConfig = &dockerNetwork.NetworkingConfig{
+			EndpointsConfig: map[string]*dockerNetwork.EndpointSettings{},
+		}
+	}
+	d.networkConfig.EndpointsConfig[n.name] = &dockerNetwork.EndpointSettings{
+		NetworkID: n.name,
 	}
 	return nil
 }
