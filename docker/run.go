@@ -37,13 +37,18 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 		}
 	}
 	var endpointsConfig map[string]*dockerNetwork.EndpointSettings
-	if d.networkConfig != nil && d.networkConfig.EndpointsConfig != nil {
-		endpointsConfig = d.networkConfig.EndpointsConfig
-	}
-	d.networkConfig.EndpointsConfig = map[string]*dockerNetwork.EndpointSettings{
+	defaultNetwork := map[string]*dockerNetwork.EndpointSettings{
 		ctx.InternalNetwork: {
 			NetworkID: ctx.InternalNetwork,
 		},
+	}
+	if d.networkConfig != nil && d.networkConfig.EndpointsConfig != nil {
+		endpointsConfig = d.networkConfig.EndpointsConfig
+		d.networkConfig.EndpointsConfig = defaultNetwork
+	} else {
+		d.networkConfig = &dockerNetwork.NetworkingConfig{
+			EndpointsConfig: defaultNetwork,
+		}
 	}
 	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, d.hostConfig, d.networkConfig, nil, d.cName)
 	if err != nil {
