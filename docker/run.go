@@ -30,8 +30,7 @@ func Run(cName, image string) *RunCommand {
 }
 
 func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
-	confs := append(d.confs, Network(ctx.InternalNetwork))
-	for _, c := range confs {
+	for _, c := range d.confs {
 		err := c.apply(d)
 		if err != nil {
 			return err
@@ -40,7 +39,11 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 	var endpointsConfig map[string]*dockerNetwork.EndpointSettings
 	if d.networkConfig != nil && d.networkConfig.EndpointsConfig != nil {
 		endpointsConfig = d.networkConfig.EndpointsConfig
-		d.networkConfig.EndpointsConfig = nil
+		d.networkConfig.EndpointsConfig = map[string]*dockerNetwork.EndpointSettings{
+			ctx.InternalNetwork: {
+				NetworkID: ctx.InternalNetwork,
+			},
+		}
 	}
 	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, d.hostConfig, d.networkConfig, nil, d.cName)
 	if err != nil {
