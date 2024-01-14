@@ -36,7 +36,10 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 			return err
 		}
 	}
-	endpointsConfig := d.networkConfig.EndpointsConfig
+	var endpointsConfig map[string]*dockerNetwork.EndpointSettings
+	if d.networkConfig != nil && d.networkConfig.EndpointsConfig != nil {
+		endpointsConfig = d.networkConfig.EndpointsConfig
+	}
 	d.networkConfig.EndpointsConfig = map[string]*dockerNetwork.EndpointSettings{
 		ctx.InternalNetwork: {
 			NetworkID: ctx.InternalNetwork,
