@@ -37,12 +37,22 @@ func (d *RunCommand) Run(ctx *pipeline.StageContext) error {
 			return err
 		}
 	}
+	var endpointsConfig map[string]*dockerNetwork.EndpointSettings
+	if d.networkConfig != nil && d.networkConfig.EndpointsConfig != nil {
+		endpointsConfig = d.networkConfig.EndpointsConfig
+	}
 	resp, err := ctx.Client.ContainerCreate(context.Background(), d.config, d.hostConfig, d.networkConfig, nil, d.cName)
 	if err != nil {
 		return err
 	}
 	if err := ctx.Client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
+	}
+	for _, net := range endpointsConfig {
+		err = ctx.Client.NetworkConnect(context.Background(), net.NetworkID, resp.ID, nil)
+		if err != nil {
+			return err
+		}
 	}
 	return ctx.Meta.Add("container", resp.ID)
 }
